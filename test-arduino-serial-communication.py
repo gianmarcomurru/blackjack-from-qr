@@ -2,10 +2,9 @@ import serial, time
 # Assign Arduino's serial port address
 #   Windows example
 #     usbport = 'COM3'
-#   Linux example
-#     usbport = '/dev/ttyUSB0'
+#   Raspberry example
+# usbport = '/dev/ttyACM0'
 #   MacOSX example
-#     usbport = '/dev/tty.usbserial-FTALLOK2'
 usbport = '/dev/cu.usbmodem21201'
 
 # Set up serial baud rate

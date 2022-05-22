@@ -1,19 +1,21 @@
 import cv2
 import numpy as np
 from pyzbar.pyzbar import decode
-import serial, time
+import serial, time, os
 
 ############# ARDUINO SETTINGS #############
 # Assign Arduino's serial port address
 #   Windows example
-#     usbport = 'COM3'
-#   Linux example
-#     usbport = '/dev/ttyUSB0'
+# usb_port = 'COM3'
+#   Raspberry example
+# usb_port = '/dev/ttyACM0'
 #   MacOSX example
-#     usbport = '/dev/tty.usbserial-FTALLOK2'
-usbport = '/dev/cu.usbmodem21201'
+# usb_port = '/dev/cu.usbmodem21201'
 
-ser = serial.Serial(usbport, 9600, timeout=1)
+usb_port = os.environ.get('USB_PORT')
+camera = int(os.environ.get('CAMERA'))
+
+ser = serial.Serial(usb_port, 9600, timeout=1)
 
 #############################################
 
@@ -34,17 +36,20 @@ def decoder(image):
         string = "Data: " + str(barcodeData) + " | Type: " + str(barcodeType)
         
         cv2.putText(frame, string, (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,0,255), 2)
-        ser.write(bytes(barcodeData, 'utf-8'))
-        print("Led blinking {} times".format(barcodeData))
-        # time.sleep(0.05)
-        time.sleep(2)
-        ser.readline()
+        return barcodeData
+       
 
-cap = cv2.VideoCapture(1) # for testing
-# cap = cv2.VideoCapture(-1) # for raspberry pi
+cap = cv2.VideoCapture(camera)
+
 while True:
     ret, frame = cap.read()
-    decoder(frame)
+    data = decoder(frame)
+    if data:
+        ser.write(bytes(data, 'utf-8'))
+        print("Led blinking {} times".format(data))
+        time.sleep(0.05)
+        # time.sleep(2)
+        ser.readline()
     cv2.imshow('Image', frame)
     code = cv2.waitKey(10)
     if code == ord('q'):

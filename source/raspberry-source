@@ -1,0 +1,2 @@
+export USB_PORT="/dev/ttyACM0"
+export CAMERA="-1"
