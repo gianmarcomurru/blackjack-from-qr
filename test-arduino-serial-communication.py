@@ -5,14 +5,13 @@ import serial, time
 #   Raspberry example
 # usbport = '/dev/ttyACM0'
 #   MacOSX example
-usbport = '/dev/cu.usbmodem21201'
+usbport = '/dev/cu.usbmodem12301'
 
 # Set up serial baud rate
 ser = serial.Serial(usbport, 9600, timeout=1)
 
 while True:
-    a=input("How many time should I blink? ").strip()
-    
-    ser.write(bytes(a, 'utf-8'))
-    time.sleep(0.05)
-    ser.readline()
+    if ser.in_waiting > 0:
+        line = ser.readline().decode('utf-8')
+        print(line)
+        time.sleep(0.5)

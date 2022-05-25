@@ -1,2 +1,2 @@
-export USB_PORT="/dev/cu.usbmodem1201"
+export USB_PORT="/dev/cu.usbmodem12301"
 export CAMERA="0"

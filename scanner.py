@@ -36,6 +36,8 @@ def decoder(image):
         string = "Data: " + str(barcodeData) + " | Type: " + str(barcodeType)
         
         cv2.putText(frame, string, (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,0,255), 2)
+        print("Barcode: "+barcodeData +" | Type: "+barcodeType)
+
         return barcodeData
        
 
@@ -48,8 +50,12 @@ while True:
         ser.write(bytes(data, 'utf-8'))
         print("Led blinking {} times".format(data))
         time.sleep(0.05)
-        # time.sleep(2)
+
+    if ser.in_waiting > 0:
+        line = ser.readline().decode('utf-8')
+        print(line)
         ser.readline()
+
     cv2.imshow('Image', frame)
     code = cv2.waitKey(10)
     if code == ord('q'):

@@ -17,19 +17,23 @@ void loop() {
   xValue = analogRead(joyX);
   yValue = analogRead(joyY);
  
-  //print the values with to plot or view
-  Serial.print(xValue);
-  Serial.print("\t");
-  Serial.println(yValue);
+  // //print the values with to plot or view
+  // Serial.print(xValue);
+  // Serial.print("\t");
+  // Serial.println(yValue);
 
 
   // change behaviour 
   if (yValue > 900) {
-    digitalWrite(led2, HIGH); 
+    digitalWrite(led2, HIGH);
     digitalWrite(led1, LOW); 
+    Serial.write("stand"); 
+    delay(750);
   } else if (yValue < 200) {
     digitalWrite(led2, LOW); 
     digitalWrite(led1, HIGH);  
+    Serial.write("hitme");
+    delay(750);
   } else {
     digitalWrite(led2, LOW); 
     digitalWrite(led1, LOW);  
