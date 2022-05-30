@@ -1,5 +1,5 @@
 // set pin numbers:
-const int buttonPin[] = {9,10,11,12};     // the number of the pushbutton pins
+const int buttonPin[] = {9,10,11,12};
 
 // variables will change:
 int buttonState1 = 0;

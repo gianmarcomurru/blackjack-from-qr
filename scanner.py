@@ -44,19 +44,23 @@ def decoder(image):
 cap = cv2.VideoCapture(camera)
 
 while True:
-    ret, frame = cap.read()
-    data = decoder(frame)
-    if data:
-        ser.write(bytes(data, 'utf-8'))
-        print("Led blinking {} times".format(data))
-        time.sleep(0.05)
-
     if ser.in_waiting > 0:
-        line = ser.readline().decode('utf-8')
-        print(line)
-        ser.readline()
+        msg = ser.readline().decode('utf-8')
+        if msg == 'CARD':
+            ret, frame = cap.read()
+            data = decoder(frame)
+            if data:
+                ser.write(bytes(data, 'utf-8'))
+                print("Led blinking {} times".format(data))
+                time.sleep(0.05)
 
-    cv2.imshow('Image', frame)
-    code = cv2.waitKey(10)
-    if code == ord('q'):
-        break
+            # if ser.in_waiting > 0:
+            #     line = ser.readline().decode('utf-8')
+            #     print(line)
+            #     ser.readline()
+
+            cv2.imshow('Image', frame)
+            code = cv2.waitKey(10)
+            if code == ord('q'):
+                break
+    time.sleep(0.01)
