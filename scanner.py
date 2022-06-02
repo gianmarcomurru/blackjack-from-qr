@@ -11,9 +11,10 @@ import serial, time, os
 # usb_port = '/dev/ttyACM0'
 #   MacOSX example
 # usb_port = '/dev/cu.usbmodem21201'
+ports = ['/dev/cu.usbmodem1301','/dev/cu.usbmodem1201','/dev/cu.usbmodem1101','/dev/cu.usbmodem1401']
 
-usb_port = os.environ.get('USB_PORT')
-camera = int(os.environ.get('CAMERA'))
+usb_port = ports[2]
+camera = 1
 
 ser = serial.Serial(usb_port, 9600, timeout=1)
 
@@ -21,6 +22,7 @@ ser = serial.Serial(usb_port, 9600, timeout=1)
 
 
 def decoder(image):
+    frame = image
     gray_img = cv2.cvtColor(image,0)
     barcode = decode(gray_img)
 
@@ -34,33 +36,38 @@ def decoder(image):
         barcodeData = obj.data.decode("utf-8")
         barcodeType = obj.type
         string = "Data: " + str(barcodeData) + " | Type: " + str(barcodeType)
-        
+
         cv2.putText(frame, string, (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,0,255), 2)
-        print("Barcode: "+barcodeData +" | Type: "+barcodeType)
+        #print("Barcode: "+barcodeData +" | Type: "+barcodeType)
 
         return barcodeData
-       
+
+def read_card():
+    data = None
+    while not data:
+        ret, frame = cap.read()
+        cv2.normalize(frame, frame, 0, 255, cv2.NORM_MINMAX)
+        data = decoder(frame)
+    return data
 
 cap = cv2.VideoCapture(camera)
+print("Waiting for messages...")
 
-while True:
-    if ser.in_waiting > 0:
-        msg = ser.readline().decode('utf-8')
-        if msg == 'CARD':
-            ret, frame = cap.read()
-            data = decoder(frame)
-            if data:
-                ser.write(bytes(data, 'utf-8'))
-                print("Led blinking {} times".format(data))
-                time.sleep(0.05)
+def main():
+    while True:
+        if ser.in_waiting > 0:
+            msg = ser.readline().decode('utf-8')
+            print("Message found: {}".format(msg))
+            if msg == 'CARD':
+                print("Reading a card...")
+                data = read_card()
+                if data:
+                    ser.write(bytes(data, 'utf-8'))
+                    print("Sending back value {}".format(data))
+                    print("Waiting for messages...")
+                    time.sleep(0.05)
+        else:
+            time.sleep(0.01)
 
-            # if ser.in_waiting > 0:
-            #     line = ser.readline().decode('utf-8')
-            #     print(line)
-            #     ser.readline()
-
-            cv2.imshow('Image', frame)
-            code = cv2.waitKey(10)
-            if code == ord('q'):
-                break
-    time.sleep(0.01)
+if __name__ == '__main__':
+    main()
