@@ -10,11 +10,9 @@ import serial, time, os
 #   Raspberry example
 # usb_port = '/dev/ttyACM0'
 #   MacOSX example
-# usb_port = '/dev/cu.usbmodem21201'
-ports = ['/dev/cu.usbmodem1301','/dev/cu.usbmodem1201','/dev/cu.usbmodem1101','/dev/cu.usbmodem1401']
+usb_port = '/dev/cu.usbmodem21101'
 
-usb_port = ports[2]
-camera = 1
+camera = 0 #Depend on your machine, should be between (-1 and 1)
 
 ser = serial.Serial(usb_port, 9600, timeout=1)
 
@@ -51,20 +49,19 @@ def read_card():
     return data
 
 cap = cv2.VideoCapture(camera)
-print("Waiting for messages...")
 
 def main():
     while True:
         if ser.in_waiting > 0:
             msg = ser.readline().decode('utf-8')
-            print("Message found: {}".format(msg))
+            print("{}".format(msg))
             if msg == 'CARD':
                 print("Reading a card...")
                 data = read_card()
                 if data:
                     ser.write(bytes(data, 'utf-8'))
-                    print("Sending back value {}".format(data))
-                    print("Waiting for messages...")
+                    print("It's a {}".format(data))
+                    #print("Waiting for messages...")
                     time.sleep(0.05)
         else:
             time.sleep(0.01)

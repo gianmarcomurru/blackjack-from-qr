@@ -20,7 +20,7 @@ def decoder(image):
         cv2.putText(frame, string, (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,0,255), 2)
         print("Barcode: "+barcodeData +" | Type: "+barcodeType)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 while True:
     ret, frame = cap.read()
     cv2.normalize(frame, frame, 0, 255, cv2.NORM_MINMAX)

@@ -37,9 +37,15 @@ void setup() {
   pinMode(dirPinGM, OUTPUT);
 }
 
+void loop1() {
+  turnRobot("player");
+  delay(2500);
+  turnRobot("dealer");
+  delay(2500);
+}
+
 void loop() {
   Serial.println("Game started");
-  //digitalWrite(led1, HIGH);
   initiateGame();
 
   // PLAYER'S TURN
@@ -51,24 +57,28 @@ void loop() {
     turnRobot("dealer");
     dealerGameplay();
   } else { // player lost
+    Serial.println("Player " + String(playerVal) + " | Dealer " + String(dealerVal));
     playerVal = 0;
   }
 
   if (dealerVal > 21) { // dealer lost
+    Serial.println("Player " + String(playerVal) + " | Dealer " + String(dealerVal));
     dealerVal = 0;
   }
 
   // END GAME
   Serial.println("Game over");
   if (playerVal > dealerVal) {
-    Serial.println("Player won");
+    Serial.println("Player won\n");
   } else if (playerVal == dealerVal) {
-    Serial.println("It's a tie");
+    Serial.println("It's a tie\n");
+    turnRobot("player");
   } else {
-    Serial.println("Dealer won");
+    Serial.println("Dealer won\n");
+    turnRobot("player");
   }
 
-  delay(10000);
+  delay(1000);
 }
 
 
@@ -78,24 +88,24 @@ void turnRobot (String person) {
       digitalWrite(dirPinGM, HIGH); // Set motor direction clockwise
 
       // Spin motor
-      for(int x = 0; x < stepsPerRevolutionGM/3; x++)
+      for(int x = 0; x < stepsPerRevolutionGM/4; x++)
       {
         digitalWrite(stepPinGM, HIGH);
-        delayMicroseconds(3000);
+        delayMicroseconds(8000);
         digitalWrite(stepPinGM, LOW);
-        delayMicroseconds(3000);
+        delayMicroseconds(8000);
       }
 
     } else if(person.equals("dealer")) {
       digitalWrite(dirPinGM, LOW); // Set motor direction counterclockwise
 
       // Spin motor
-      for(int x = 0; x < stepsPerRevolutionGM/3; x++)
+      for(int x = 0; x < stepsPerRevolutionGM/4; x++)
       {
         digitalWrite(stepPinGM, HIGH);
-        delayMicroseconds(3000);
+        delayMicroseconds(8000);
         digitalWrite(stepPinGM, LOW);
-        delayMicroseconds(3000);
+        delayMicroseconds(8000);
       }
     }
 }
@@ -112,7 +122,6 @@ void initiateGame() {
   }
 
   // DEAL 2 CARDS TO PLAYER
-  turnRobot("player");
   playerVal += readValue("player");
   dealCard();
   playerVal += readValue("player");
@@ -121,9 +130,11 @@ void initiateGame() {
   // DEAL 1 CARD TO DEALER
   turnRobot("dealer");
   dealerVal += readValue("dealer");
+  dealCard();
 }
 
 void playerGameplay() {
+  Serial.write("Player's turn\n");
   if (is_hitme()) {
     playerVal += readValue("player");
     dealCard();
@@ -138,26 +149,44 @@ void playerGameplay() {
 }
 
 void dealerGameplay() {
-
+  Serial.write("Dealer's turn\n");
   while(dealerVal < 16) {
     dealerVal += readValue("dealer");
+    dealCard();
   }
 }
 
+int handleAce(String person, int val) {
+  if(person.equals("player")) {
+    if(playerHasAce) val = 1;
+    else {
+      if (playerVal + 11 < 22) {
+          val = 11; playerHasAce = true;
+      } else {
+          val = 1; playerHasAce = true;
+      }
+    }
+  } else{
+    if(dealerHasAce) val = 1;
+    else {
+      if (dealerVal + 11 < 22) {
+          val = 11; dealerHasAce = true;
+      } else {
+          val = 1; dealerHasAce = true;
+      }
+    }
+  }
+  return val;
+}
+
 int readValue(String person) {
-  Serial.write("CARD"); // Ask to Rasperry Pi to read a card
+  Serial.write("CARD"); // Ask to Computer to read a card
   while(true){
     if (Serial.available() > 0) {
       int val = Serial.readStringUntil('\n').toInt();
       if (val >= 2 && val <= 11){
         if (val == 11) {
-          if(person.equals("player")) {
-            if(playerHasAce) val = 1;
-            else { val = 11; playerHasAce = true; }
-          } else{
-            if(dealerHasAce) val = 1;
-            else { val = 11; dealerHasAce = true; }
-          }
+          val = handleAce(person, val);
         }
         return val;
       }
@@ -169,7 +198,7 @@ int readValue(String person) {
 void dealCard() {
   digitalWrite(dirPinRM,HIGH);
   digitalWrite(stepPinRM,LOW);
-  delay(1400);
+  delay(1300);
 
   digitalWrite(dirPinRM,LOW);
   digitalWrite(stepPinRM,HIGH);
@@ -181,17 +210,17 @@ void dealCard() {
 
 
 boolean is_hitme() {
+  Serial.write("Waiting for player...\n");
   while (true) {
     xValue = analogRead(joyX);
     yValue = analogRead(joyY);
 
-    return (yValue > 900);
+    if (yValue > 900) {
+      Serial.write("Stand\n");
+      return false;
+    } else if (yValue < 200) {
+      Serial.write("Hit me!\n");
+      return true;
+    }
   }
 }
-
-/*
-void printStatus() {
-  Serial.println("Dealer value: " + dealerVal);
-  Serial.println("Player value: " + playerVal);
-}
-*/
